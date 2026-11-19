@@ -1,0 +1,46 @@
+===== TransExpress — Simulación de un envío =====
+
+--- Creacionales ---
+  [Singleton] Empresa: TransExpress | Moneda: USD
+  [Builder] Orden[Ana Pérez: Bodega Central -> Casa del Cliente, 12.5 kg, frágil, urgente]
+  [Factory Method] Asignado: Moto de reparto urbano (20 kg)
+  [Abstract Factory] Servicio premium: Furgoneta de reparto + Caja reforzada con protección acolchada
+  [Prototype] Original: Ruta base [Bodega Central, Casa del Cliente]
+  [Prototype] Clon:     Ruta del día [Bodega Central, Casa del Cliente]
+
+--- Estructurales ---
+  [Facade] Cotización 1: 85.29 | Cotización 2: 85.29
+  [Proxy] Consultas reales: 1 | Servidas desde caché: 1
+  [Bridge] Envío nacional entregado por vía aérea
+  [Composite] Ruta total(Bodega->Hub + Última milla(Hub->Barrio + Barrio->Cliente)) = 15.0 km
+  [Decorator] Envío básico + seguro + entrega urgente = 27.00
+  [Flyweight] [AB-123] Mercedes Sprinter y [CD-456] Mercedes Sprinter
+  [Flyweight] Modelos distintos creados en memoria: 1
+
+--- Comportamiento ---
+  [Chain of Responsibility] Validación: OK
+  [Strategy] Tarifa por distancia = 22.50
+  [Strategy] Tarifa por peso = 17.50
+  [State] Estado inicial: CREADO
+  [Observer] (SMS) Envío ENV-0001 ahora está: EN_RUTA
+  [Observer] (Email) Envío ENV-0001 ahora está: EN_RUTA
+  [Observer] (SMS) Envío ENV-0001 ahora está: ENTREGADO
+  [Observer] (Email) Envío ENV-0001 ahora está: ENTREGADO
+  [State] Estado final: ENTREGADO
+  [Command] Deshacer última operación (Command + Memento)
+  [State] Tras deshacer: EN_RUTA
+  [Iterator] Flota: [Moto AB-123] [Furgoneta CD-456] [Camión EF-789]
+  [Mediator] Luis transmite: "Tráfico en la autopista, tomen la ruta 2"
+  [Mediator] Marta recibió: [Tráfico en la autopista, tomen la ruta 2]
+  [Mediator] Pedro recibió: [Tráfico en la autopista, tomen la ruta 2]
+  [Template Method] Entrega Express:
+    Recogida prioritaria en 15 minutos.
+    Transporte directo sin paradas.
+    Entrega confirmada y firmada.
+  [Template Method] Entrega Económica:
+    Recogida agrupada al día siguiente.
+    Transporte con paradas compartidas.
+    Entrega confirmada y firmada.
+  [Visitor] Facturación total: 2472.50
+
+===== Fin de la simulación =====
