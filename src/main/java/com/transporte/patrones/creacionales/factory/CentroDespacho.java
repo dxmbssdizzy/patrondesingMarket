@@ -14,11 +14,11 @@ public abstract class CentroDespacho {
     /** Método fábrica: cada centro decide qué vehículo produce. */
     protected abstract Vehiculo crearVehiculo();
 
-    /** Operación de negocio que usa el producto creado por el método fábrica. */
+    /**
+     * Operación de negocio que usa el producto creado por el método fábrica.
+     * Devuelve el vehículo; la presentación es responsabilidad de la capa de salida.
+     */
     public Vehiculo asignarVehiculo() {
-        Vehiculo vehiculo = crearVehiculo();
-        System.out.println("  [Factory Method] Asignado: " + vehiculo.descripcion()
-                + " (" + vehiculo.capacidadKg() + " kg)");
-        return vehiculo;
+        return crearVehiculo();
     }
 }

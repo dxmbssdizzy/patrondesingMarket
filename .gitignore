@@ -2,6 +2,11 @@
 target/
 .m2repo/
 
+# Python (generador de documentación)
+.pylibs/
+__pycache__/
+*.pyc
+
 # IDEs
 .idea/
 *.iml

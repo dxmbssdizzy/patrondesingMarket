@@ -8,8 +8,9 @@ import java.util.List;
  * PATRÓN PROTOTYPE (Creacional).
  *
  * Permite crear nuevas rutas copiando una plantilla ya configurada, en vez de
- * construirlas desde cero. El método {@link #clonar()} devuelve una copia
- * independiente (copia profunda de la lista de paradas).
+ * construirlas desde cero. El método {@link #clonar()} crea una lista de paradas
+ * nueva e independiente; las {@link Ubicacion} que contiene son inmutables, por
+ * lo que compartir sus referencias es seguro (no hace falta copiarlas una a una).
  */
 public final class PlantillaRuta {
 
