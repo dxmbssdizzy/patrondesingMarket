@@ -9,6 +9,24 @@ import com.transporte.patrones.creacionales.factory.CentroDespachoUrbano;
 import com.transporte.patrones.creacionales.factory.Vehiculo;
 import com.transporte.patrones.creacionales.prototype.PlantillaRuta;
 import com.transporte.patrones.creacionales.singleton.ConfiguracionEmpresa;
+import com.transporte.patrones.estructurales.adapter.AdaptadorApiMapas;
+import com.transporte.patrones.estructurales.adapter.ApiMapasExterna;
+import com.transporte.patrones.estructurales.adapter.ServicioDistancia;
+import com.transporte.patrones.estructurales.bridge.EnvioNacional;
+import com.transporte.patrones.estructurales.bridge.TransporteAereo;
+import com.transporte.patrones.estructurales.composite.ComponenteRuta;
+import com.transporte.patrones.estructurales.composite.RutaCompuesta;
+import com.transporte.patrones.estructurales.composite.Tramo;
+import com.transporte.patrones.estructurales.decorator.ConEntregaUrgente;
+import com.transporte.patrones.estructurales.decorator.ConSeguro;
+import com.transporte.patrones.estructurales.decorator.EnvioBasico;
+import com.transporte.patrones.estructurales.decorator.ServicioEnvio;
+import com.transporte.patrones.estructurales.facade.FachadaReservas;
+import com.transporte.patrones.estructurales.flyweight.FabricaModelos;
+import com.transporte.patrones.estructurales.flyweight.ModeloVehiculo;
+import com.transporte.patrones.estructurales.flyweight.UnidadFlota;
+import com.transporte.patrones.estructurales.proxy.ProxyTarifasCache;
+import com.transporte.patrones.estructurales.proxy.ServicioTarifasReal;
 
 /**
  * Responsabilidad única: LÓGICA CENTRAL.
@@ -34,6 +52,7 @@ public final class Cliente {
         salida.titulo(config.getNombreEmpresa() + " — Simulación de un envío");
 
         creacionales();
+        estructurales();
 
         salida.titulo("Fin de la simulación");
     }
@@ -80,6 +99,64 @@ public final class Cliente {
         copia.renombrar("Ruta del día");
         salida.patron("Prototype", "Original: " + base);
         salida.patron("Prototype", "Clon:     " + copia);
+
+        salida.saltoLinea();
+    }
+
+    // ---------------------------------------------------------------------
+    // PATRONES ESTRUCTURALES
+    // ---------------------------------------------------------------------
+    private void estructurales() {
+        salida.seccion("Estructurales");
+
+        Ubicacion bodega = entrada.bodegaCentral();
+        Ubicacion cliente = entrada.casaCliente();
+        String zona = entrada.zonaTarifa();
+
+        // ADAPTER: adaptamos una API de mapas externa a nuestra interfaz.
+        ServicioDistancia distancia = new AdaptadorApiMapas(new ApiMapasExterna());
+
+        // PROXY: envolvemos el servicio de tarifas con una caché.
+        ProxyTarifasCache tarifas = new ProxyTarifasCache(new ServicioTarifasReal());
+
+        // FACADE: una sola llamada esconde distancia (Adapter) + tarifa (Proxy).
+        FachadaReservas reservas = new FachadaReservas(distancia, tarifas);
+        double costo1 = reservas.cotizar(bodega, cliente, zona);
+        double costo2 = reservas.cotizar(bodega, cliente, zona); // segunda vez: caché
+        salida.patron("Facade", String.format("Cotización 1: %.2f | Cotización 2: %.2f",
+                costo1, costo2));
+        salida.patron("Proxy", "Consultas reales: " + tarifas.consultasReales()
+                + " | Servidas desde caché: " + tarifas.consultasEnCache());
+
+        // BRIDGE: tipo de envío y medio de transporte varían por separado.
+        EnvioNacional envio = new EnvioNacional(new TransporteAereo());
+        salida.patron("Bridge", envio.entregar());
+
+        // COMPOSITE: una ruta compuesta por tramos y sub-rutas.
+        ComponenteRuta primeraMilla = new Tramo("Bodega", "Hub", 8.0);
+        RutaCompuesta ultimaMilla = new RutaCompuesta("Última milla")
+                .agregar(new Tramo("Hub", "Barrio", 5.0))
+                .agregar(new Tramo("Barrio", "Cliente", 2.0));
+        RutaCompuesta rutaTotal = new RutaCompuesta("Ruta total")
+                .agregar(primeraMilla)
+                .agregar(ultimaMilla);
+        salida.patron("Composite", String.format("%s = %.1f km",
+                rutaTotal.describir(), rutaTotal.distanciaKm()));
+
+        // DECORATOR: añadimos extras al envío básico.
+        ServicioEnvio servicio = new ConEntregaUrgente(new ConSeguro(new EnvioBasico(10.0)));
+        salida.patron("Decorator", String.format("%s = %.2f",
+                servicio.descripcion(), servicio.costo()));
+
+        // FLYWEIGHT: muchas unidades comparten el mismo objeto "modelo".
+        FabricaModelos modelos = new FabricaModelos();
+        ModeloVehiculo sprinter = modelos.obtener("Mercedes", "Sprinter", 0.12);
+        UnidadFlota u1 = new UnidadFlota("AB-123", sprinter);
+        UnidadFlota u2 = new UnidadFlota("CD-456",
+                modelos.obtener("Mercedes", "Sprinter", 0.12));
+        salida.patron("Flyweight", u1.descripcion() + " y " + u2.descripcion());
+        salida.patron("Flyweight", "Modelos distintos creados en memoria: "
+                + modelos.modelosCreados());
 
         salida.saltoLinea();
     }

@@ -15,6 +15,9 @@ public final class ProxyTarifasCache implements ServicioTarifas {
     private final ServicioTarifas servicioReal;
     private final Map<String, Double> cache = new HashMap<>();
 
+    private int consultasReales;
+    private int consultasEnCache;
+
     public ProxyTarifasCache(ServicioTarifas servicioReal) {
         this.servicioReal = servicioReal;
     }
@@ -22,11 +25,22 @@ public final class ProxyTarifasCache implements ServicioTarifas {
     @Override
     public double tarifaPorKm(String zona) {
         if (cache.containsKey(zona)) {
-            System.out.println("    [Proxy] Tarifa servida desde CACHÉ para zona: " + zona);
+            consultasEnCache++;
             return cache.get(zona);
         }
+        consultasReales++;
         double tarifa = servicioReal.tarifaPorKm(zona);
         cache.put(zona, tarifa);
         return tarifa;
+    }
+
+    /** Veces que hubo que ir al servicio real (consulta costosa). */
+    public int consultasReales() {
+        return consultasReales;
+    }
+
+    /** Veces que la tarifa se sirvió desde la caché. */
+    public int consultasEnCache() {
+        return consultasEnCache;
     }
 }

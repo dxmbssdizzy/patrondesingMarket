@@ -7,7 +7,8 @@ public final class ServicioTarifasReal implements ServicioTarifas {
 
     @Override
     public double tarifaPorKm(String zona) {
-        System.out.println("    [Proxy] Consulta COSTOSA al servicio real para zona: " + zona);
+        // Operación costosa simulada. La presentación es responsabilidad de la
+        // capa de salida, no del patrón.
         return switch (zona) {
             case "centro" -> 1.2;
             case "periferia" -> 1.8;
