@@ -90,6 +90,30 @@ src/main/java/com/transporte/
     └── comportamiento/
 ```
 
+## Informe (.docx)
+
+El informe del proyecto está en `docs/Informe_TransExpress.docx` y se genera
+automáticamente a partir del código y de la prosa del equipo.
+
+- `docs/contenido_informe.py`: portada, explicación en prosa y catálogo de
+  patrones (texto editable por el equipo).
+- `docs/generar_informe.py`: genera el `.docx` siguiendo la plantilla
+  (portada, tabla de contenido, diagrama, explicación, explicación de clases,
+  entradas y salidas, código). El código fuente de cada clase se lee en vivo
+  de los `.java`, por lo que el informe siempre refleja el código vigente.
+- `docs/salida_consola.txt`: salida de la ejecución que se incrusta en la
+  Figura 2 (reemplazable por una captura).
+
+El informe deja dos espacios reservados para imágenes: el diagrama UML
+(Figura 1) y la salida de consola (Figura 2).
+
+Requisitos del generador: Python 3 y `python-docx`. Para generarlo:
+
+```bash
+pip install python-docx
+python docs/generar_informe.py
+```
+
 ## Contribuir
 
 Lee [CONTRIBUTING.md](CONTRIBUTING.md) antes de abrir un pull request.
