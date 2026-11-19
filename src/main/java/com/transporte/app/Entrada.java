@@ -35,4 +35,20 @@ public final class Entrada {
     public double distanciaEjemploKm() {
         return 15.0;
     }
+
+    public String numeroEnvio() {
+        return "ENV-0001";
+    }
+
+    public java.util.List<String> unidadesFlota() {
+        return java.util.List.of("Moto AB-123", "Furgoneta CD-456", "Camión EF-789");
+    }
+
+    public java.util.List<String> nombresConductores() {
+        return java.util.List.of("Luis", "Marta", "Pedro");
+    }
+
+    public String mensajeRadio() {
+        return "Tráfico en la autopista, tomen la ruta 2";
+    }
 }

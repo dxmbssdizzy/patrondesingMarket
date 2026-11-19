@@ -1,5 +1,8 @@
 package com.transporte.patrones.comportamiento.template;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * PATRÓN TEMPLATE METHOD (Comportamiento).
  *
@@ -9,18 +12,24 @@ package com.transporte.patrones.comportamiento.template;
  */
 public abstract class ProcesoEntrega {
 
-    public final void procesar() {
-        recoger();
-        transportar();
-        confirmar();
+    /**
+     * Método plantilla: fija el orden de los pasos y devuelve lo que hizo cada
+     * uno, para que la capa de salida lo muestre. No imprime.
+     */
+    public final List<String> procesar() {
+        List<String> pasos = new ArrayList<>();
+        pasos.add(recoger());
+        pasos.add(transportar());
+        pasos.add(confirmar());
+        return pasos;
     }
 
-    protected abstract void recoger();
+    protected abstract String recoger();
 
-    protected abstract void transportar();
+    protected abstract String transportar();
 
     /** Paso común a todas las entregas. */
-    private void confirmar() {
-        System.out.println("    [Template Method] Entrega confirmada y firmada.");
+    private String confirmar() {
+        return "Entrega confirmada y firmada.";
     }
 }

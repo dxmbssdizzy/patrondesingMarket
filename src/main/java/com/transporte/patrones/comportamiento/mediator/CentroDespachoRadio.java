@@ -16,6 +16,11 @@ public final class CentroDespachoRadio implements CentroDespacho {
         conductores.add(conductor);
     }
 
+    /** Conductores registrados (solo lectura), para que la salida los consulte. */
+    public List<Conductor> conductores() {
+        return List.copyOf(conductores);
+    }
+
     @Override
     public void enviar(String mensaje, Conductor emisor) {
         for (Conductor conductor : conductores) {

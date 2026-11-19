@@ -27,6 +27,27 @@ import com.transporte.patrones.estructurales.flyweight.ModeloVehiculo;
 import com.transporte.patrones.estructurales.flyweight.UnidadFlota;
 import com.transporte.patrones.estructurales.proxy.ProxyTarifasCache;
 import com.transporte.patrones.estructurales.proxy.ServicioTarifasReal;
+import com.transporte.patrones.comportamiento.chain.ValidadorDestino;
+import com.transporte.patrones.comportamiento.chain.ValidadorOrden;
+import com.transporte.patrones.comportamiento.chain.ValidadorPeso;
+import com.transporte.patrones.comportamiento.command.AvanzarEnvioComando;
+import com.transporte.patrones.comportamiento.command.PanelOperaciones;
+import com.transporte.patrones.comportamiento.iterator.Flota;
+import com.transporte.patrones.comportamiento.mediator.CentroDespachoRadio;
+import com.transporte.patrones.comportamiento.mediator.Conductor;
+import com.transporte.patrones.comportamiento.memento.Paquete;
+import com.transporte.patrones.comportamiento.observer.NotificadorCliente;
+import com.transporte.patrones.comportamiento.strategy.EstrategiaTarifa;
+import com.transporte.patrones.comportamiento.strategy.TarifaPorDistancia;
+import com.transporte.patrones.comportamiento.strategy.TarifaPorPeso;
+import com.transporte.patrones.comportamiento.template.EntregaEconomica;
+import com.transporte.patrones.comportamiento.template.EntregaExpress;
+import com.transporte.patrones.comportamiento.template.ProcesoEntrega;
+import com.transporte.patrones.comportamiento.visitor.ElementoFacturable;
+import com.transporte.patrones.comportamiento.visitor.EnvioInternacional;
+import com.transporte.patrones.comportamiento.visitor.EnvioLocal;
+import com.transporte.patrones.comportamiento.visitor.VisitanteFacturacion;
+import java.util.List;
 
 /**
  * Responsabilidad única: LÓGICA CENTRAL.
@@ -53,6 +74,7 @@ public final class Cliente {
 
         creacionales();
         estructurales();
+        comportamiento();
 
         salida.titulo("Fin de la simulación");
     }
@@ -159,5 +181,96 @@ public final class Cliente {
                 + modelos.modelosCreados());
 
         salida.saltoLinea();
+    }
+
+    // ---------------------------------------------------------------------
+    // PATRONES DE COMPORTAMIENTO
+    // ---------------------------------------------------------------------
+    private void comportamiento() {
+        salida.seccion("Comportamiento");
+
+        Ubicacion bodega = entrada.bodegaCentral();
+        Ubicacion cliente = entrada.casaCliente();
+
+        // CHAIN OF RESPONSIBILITY: validamos la orden con una cadena.
+        OrdenTransporte orden = new OrdenTransporte.Builder(entrada.nombreCliente(), bodega, cliente)
+                .conPeso(entrada.pesoPaqueteKg())
+                .construir();
+        ValidadorOrden validador = new ValidadorPeso();
+        validador.encadenar(new ValidadorDestino());
+        String error = validador.validar(orden);
+        salida.patron("Chain of Responsibility",
+                "Validación: " + (error == null ? "OK" : "ERROR -> " + error));
+
+        // STRATEGY: elegimos el algoritmo de tarifa en tiempo de ejecución.
+        for (EstrategiaTarifa estrategia : List.of(new TarifaPorDistancia(), new TarifaPorPeso())) {
+            double precio = estrategia.calcular(entrada.distanciaEjemploKm(), entrada.pesoPaqueteKg());
+            salida.patron("Strategy",
+                    String.format("Tarifa %s = %.2f", estrategia.nombre(), precio));
+        }
+
+        // OBSERVER + STATE + MEMENTO + COMMAND sobre un mismo paquete.
+        Paquete paquete = new Paquete(entrada.numeroEnvio());
+        paquete.suscribir(new NotificadorCliente("SMS", salida.canal("Observer")));
+        paquete.suscribir(new NotificadorCliente("Email", salida.canal("Observer")));
+
+        PanelOperaciones panel = new PanelOperaciones();
+        salida.patron("State", "Estado inicial: " + paquete.estadoActual());
+        panel.ejecutar(new AvanzarEnvioComando(paquete)); // -> EN_RUTA
+        panel.ejecutar(new AvanzarEnvioComando(paquete)); // -> ENTREGADO
+        salida.patron("State", "Estado final: " + paquete.estadoActual());
+        panel.deshacerUltimo(); // Command + Memento
+        salida.patron("Command", "Deshacer última operación (Command + Memento)");
+        salida.patron("State", "Tras deshacer: " + paquete.estadoActual());
+
+        // ITERATOR: recorremos la flota sin conocer su estructura interna.
+        Flota flota = new Flota();
+        entrada.unidadesFlota().forEach(flota::agregar);
+        StringBuilder listado = new StringBuilder();
+        for (String unidad : flota) {
+            listado.append(" [").append(unidad).append("]");
+        }
+        salida.patron("Iterator", "Flota:" + listado);
+
+        // MEDIATOR: los conductores se coordinan a través del centro de despacho.
+        CentroDespachoRadio central = new CentroDespachoRadio();
+        List<String> nombres = entrada.nombresConductores();
+        Conductor emisor = new Conductor(nombres.get(0), central);
+        for (int i = 1; i < nombres.size(); i++) {
+            new Conductor(nombres.get(i), central);
+        }
+        emisor.transmitir(entrada.mensajeRadio());
+        salida.patron("Mediator", emisor.getNombre() + " transmite: \""
+                + entrada.mensajeRadio() + "\"");
+        for (Conductor conductor : central.conductores()) {
+            if (conductor != emisor) {
+                salida.patron("Mediator", conductor.getNombre() + " recibió: "
+                        + conductor.mensajesRecibidos());
+            }
+        }
+
+        // TEMPLATE METHOD: el esqueleto del proceso de entrega es fijo.
+        mostrarEntrega("Express", new EntregaExpress());
+        mostrarEntrega("Económica", new EntregaEconomica());
+
+        // VISITOR: un visitante de facturación recorre envíos de distinto tipo.
+        VisitanteFacturacion facturacion = new VisitanteFacturacion();
+        List<ElementoFacturable> facturables = List.of(
+                new EnvioLocal(15.0),
+                new EnvioInternacional(1200.0, 50.0));
+        double total = 0;
+        for (ElementoFacturable elemento : facturables) {
+            total += elemento.aceptar(facturacion);
+        }
+        salida.patron("Visitor", String.format("Facturación total: %.2f", total));
+
+        salida.saltoLinea();
+    }
+
+    private void mostrarEntrega(String tipo, ProcesoEntrega proceso) {
+        salida.patron("Template Method", "Entrega " + tipo + ":");
+        for (String paso : proceso.procesar()) {
+            salida.detalle(paso);
+        }
     }
 }

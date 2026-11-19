@@ -60,8 +60,11 @@ public final class Paquete {
     }
 
     public void restaurar(MementoPaquete memento) {
+        // Restaura el estado; la presentación la hace la capa de salida.
         this.estado = memento.getEstado();
-        System.out.println("    [Memento] Envío " + numero + " restaurado a: "
-                + estado.nombre());
+    }
+
+    public String numero() {
+        return numero;
     }
 }

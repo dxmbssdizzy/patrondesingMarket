@@ -37,4 +37,13 @@ public final class Salida {
     public void saltoLinea() {
         System.out.println();
     }
+
+    /**
+     * Devuelve un canal de salida reutilizable para una etiqueta de patrón.
+     * Útil para inyectarlo donde se necesite un destino de mensajes (p. ej. el
+     * notificador del patrón Observer) sin acoplar esa clase a Salida.
+     */
+    public java.util.function.Consumer<String> canal(String patron) {
+        return mensaje -> patron(patron, mensaje);
+    }
 }

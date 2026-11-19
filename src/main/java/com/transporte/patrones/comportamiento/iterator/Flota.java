@@ -3,6 +3,7 @@ package com.transporte.patrones.comportamiento.iterator;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * PATRÓN ITERATOR (Comportamiento).
@@ -36,6 +37,9 @@ public final class Flota implements Iterable<String> {
 
         @Override
         public String next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("No hay más unidades en la flota");
+            }
             return unidades.get(indice++);
         }
     }
